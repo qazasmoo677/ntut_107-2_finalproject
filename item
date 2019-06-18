@@ -1,0 +1,200 @@
+Dim bignum As Byte
+Dim smallnum As Byte
+Private Sub UserForm_Activate()
+    CB_big.AddItem ("資產(A)")
+    CB_big.AddItem ("負債(L)")
+    CB_big.AddItem ("權益(OE)")
+    CB_big.AddItem ("收益(R)")
+    CB_big.AddItem ("費損(E)")
+    CB_r.AddItem ("借方")
+    CB_r.AddItem ("貸方")
+    CB_big.ListIndex = 0
+    CB_r.Text = "請選擇"
+End Sub
+Private Sub CB_big_Change()
+    CB_small.Clear
+    Select Case CB_big.Value
+    Case "資產(A)"
+        CB_small.AddItem ("流動資產")
+        CB_small.AddItem ("非流動資產")
+        bignum = 1
+    Case "負債(L)"
+        CB_small.AddItem ("流動負債")
+        CB_small.AddItem ("非流動負債")
+        bignum = 2
+    Case "權益(OE)"
+        CB_small.AddItem ("業主資本")
+        CB_small.AddItem ("業主往來")
+        CB_small.AddItem ("本期損益")
+        bignum = 3
+    Case "收益(R)"
+        CB_small.AddItem ("營業收入")
+        CB_small.AddItem ("營業外收入")
+        bignum = 4
+    Case "費損(E)"
+        CB_small.AddItem ("營業成本")
+        CB_small.AddItem ("營業費用")
+        CB_small.AddItem ("營業外支出")
+        bignum = 5
+    Case Else
+        CB_small.AddItem ("錯誤")
+        bignum = 6
+    End Select
+    CB_small.ListIndex = 0
+End Sub
+Private Sub CB_small_Change()
+    Call small
+End Sub
+Private Sub LB_item_Click()
+    Worksheets("項目").Activate
+    rownum = Cells(Rows.count, 1).End(xlUp).Row
+    For i = 0 To LB_item.ListCount - 1
+        If LB_item.Selected(i) Then
+            tb_no.Text = LB_item.List(i, 0)
+            TB_item.Text = LB_item.List(i, 1)
+        End If
+    Next
+    For i = 1 To rownum
+        If Cells(i, 3).Value = tb_no.Text Then
+            If Cells(i, 5).Value = 1 Then
+                CB_r.ListIndex = 0
+            Else
+                CB_r.ListIndex = 1
+            End If
+            Exit For
+        End If
+    Next
+End Sub
+Private Sub cb_revise_Click()
+    Worksheets("項目").Activate
+    rownum = Cells(Rows.count, 1).End(xlUp).Row
+    Dim key As Boolean
+    For i = 0 To LB_item.ListCount - 1
+        If LB_item.Selected(i) Then
+            For j = 1 To rownum
+                If CStr(Cells(j, 3).Value) = LB_item.List(i, 0) Then
+                    key = check(tb_no.Text, TB_item.Text, j, True)
+                    Exit For
+                End If
+            Next
+            If key = False Then Exit For
+        End If
+    Next
+    If tb_no.Text = "" Or TB_item.Text = "" Or CB_r.Text = "請選擇" Then
+        key = False
+        MsgBox ("修改失敗，資料有誤")
+    End If
+    If key Then
+        For i = 0 To LB_item.ListCount - 1
+            If LB_item.Selected(i) Then
+                For j = 1 To rownum
+                    If CStr(Cells(j, 3).Value) = LB_item.List(i, 0) Then
+                        Cells(j, 3).Value = tb_no.Text
+                        Cells(j, 4).Value = TB_item.Text
+                        If CB_r.Value = "借方" Then
+                            Cells(j, 5).Value = 1
+                        Else
+                            Cells(j, 5).Value = 2
+                        End If
+                        LB_item.List(i, 0) = Cells(j, 3).Value
+                        LB_item.List(i, 1) = Cells(j, 4).Value
+                        tb_no.Text = Cells(j, 3).Value
+                        TB_item.Text = Cells(j, 4).Value
+                        MsgBox ("修改完成")
+                        Exit For
+                    End If
+                Next
+            End If
+        Next
+    End If
+End Sub
+Private Sub cb_add_Click()
+    Worksheets("項目").Activate
+    rownum = Cells(Rows.count, 1).End(xlUp).Row
+    Dim key As Boolean
+    key = check(tb_no.Text, TB_item.Text, -1, False)
+    If key Then
+        Dim t As Integer
+        t = -1
+        For i = 1 To rownum
+            If Cells(i, 1).Value = bignum And Cells(i, 2).Value = smallnum Then t = i
+        Next
+        If t <> -1 Then
+            t = t + 1
+            Call gogogo(t)
+            Cells(t, 1).Value = bignum
+            Cells(t, 2).Value = smallnum
+            Cells(t, 3).Value = tb_no.Text
+            Cells(t, 4).Value = TB_item.Text
+            If CB_r.Value = "借方" Then
+                Cells(t, 5).Value = 1
+            Else
+                Cells(t, 5).Value = 2
+            End If
+        End If
+    End If
+    Call small
+End Sub
+Sub small()
+    smallnum = 0
+    LB_item.Clear
+    For i = 0 To CB_small.ListCount - 1
+        If CB_small.Value = CB_small.List(i) Then
+            smallnum = i + 1
+            Exit For
+        End If
+    Next
+    If smallnum <> 0 Then
+        Worksheets("項目").Activate
+        rownum = Cells(Rows.count, 1).End(xlUp).Row
+        For i = 1 To rownum
+            If Cells(i, 1).Value = bignum Then
+                If Cells(i, 2).Value = smallnum Then
+                    LB_item.AddItem (Cells(i, 3).Value)
+                    LB_item.List(LB_item.ListCount - 1, 1) = Cells(i, 4).Value
+                End If
+            End If
+        Next
+    Else
+        LB_item.AddItem ("錯誤")
+    End If
+End Sub
+Sub gogogo(ByVal a As Integer)
+    Worksheets("項目").Activate
+    rownum = Cells(Rows.count, 1).End(xlUp).Row
+    For i = rownum To a Step -1
+        Cells(i + 1, 1).Value = Cells(i, 1).Value
+        Cells(i + 1, 2).Value = Cells(i, 2).Value
+        Cells(i + 1, 3).Value = Cells(i, 3).Value
+        Cells(i + 1, 4).Value = Cells(i, 4).Value
+        Cells(i + 1, 5).Value = Cells(i, 5).Value
+    Next
+    Range(Cells(a, 1), Cells(a, 5)).ClearContents
+End Sub
+Function check(ByVal no As String, ByVal str As String, ByVal jump As Integer, ByVal con As Boolean) As Boolean
+    rownum = Cells(Rows.count, 1).End(xlUp).Row
+    Dim key As Boolean
+    key = True
+    For i = 1 To rownum
+        If i <> jump Then
+            If Cells(i, 3).Value = no Then
+                MsgBox ("此項目已經存在：" & Cells(i, 3).Value & "," & Cells(i, 4).Value)
+                key = False
+                Exit For
+            ElseIf Cells(i, 4).Value = str Then
+                MsgBox ("此項目名稱已經存在：" & Cells(i, 3).Value & "," & Cells(i, 4).Value)
+                key = False
+                Exit For
+            ElseIf CB_r.Text = "請選擇" Then
+                MsgBox ("未選正常餘額之方向")
+                key = False
+                Exit For
+            End If
+        End If
+    Next
+    check = key
+End Function
+Private Sub cb_back_Click()
+    Unload Me
+    main.Show
+End Sub
