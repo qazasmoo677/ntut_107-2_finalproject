@@ -1,0 +1,60 @@
+Function secret(ByVal a As String) As String
+    Dim str As String
+    Dim n2 As String
+    Dim n3 As Integer
+    Dim r As Byte
+    r = Int(Rnd() * 10)
+    str = ""
+    n2 = ""
+    n3 = 0
+    For i = 1 To Len(a)
+        Dim t As String
+        t = CStr(Asc(Mid(a, i, 1)))
+        n3 = n3 + 1
+        n2 = n2 & Len(t)
+        For j = 1 To Len(t)
+            Dim ts As String
+            ts = 9 - Mid(t, j, 1) + r
+            If Val(ts) > 9 Then ts = Chr(87 + Val(ts))
+            str = str & ts
+        Next
+    Next
+    str = str & n2 & Chr(96 + n3)
+    For i = 1 To 7
+        If i < 4 Then
+            str = Int(Rnd() * 10) & str
+        Else
+            str = str & Int(Rnd() * 10)
+        End If
+    Next
+    secret = str & r
+End Function
+Function unsecret(ByVal a As String) As String
+    Dim str As String
+    Dim r As Byte
+    r = Strings.Right(a, 1)
+    str = ""
+    a = Mid(a, 4, Len(a) - 8)
+    Dim n3 As Integer
+    n3 = Asc(Strings.Right(a, 1)) - 96
+    a = Strings.Left(a, Len(a) - 1)
+    Dim n2 As String
+    n2 = Strings.Right(a, n3)
+    a = Strings.Left(a, Len(a) - n3)
+    For i = 1 To n3
+        Dim t As String
+        t = Mid(a, 1, Mid(n2, i, 1))
+        a = Strings.Right(a, Len(a) - Mid(n2, i, 1))
+        Dim tt As String
+        tt = ""
+        For j = 1 To Len(t)
+            If Not (IsNumeric(Mid(t, j, 1))) Then
+                tt = tt & 9 - (Asc(Mid(t, j, 1)) - 87 - r)
+            Else
+                tt = tt & CStr(9 - Val(Mid(t, j, 1) - r))
+            End If
+        Next
+        str = str & Chr(tt)
+    Next
+    unsecret = str
+End Function
