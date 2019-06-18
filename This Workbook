@@ -1,0 +1,7 @@
+Private Sub Workbook_Open()
+    Worksheets("會員資料").Activate
+    login.Show
+End Sub
+Sub start()
+    login.Show
+End Sub
