@@ -1,0 +1,30 @@
+Private Sub CommandButton1_Click()
+    Unload Me
+    setting.Show
+End Sub
+
+Private Sub CommandButton12_Click()
+    Worksheets("會員資料").Activate
+    MsgBox (Cells(tuser, 3).Value & "，登出成功！")
+    Unload Me
+    login.Show
+End Sub
+
+Private Sub CommandButton2_Click()
+    Unload Me
+    item.Show
+End Sub
+
+Private Sub CommandButton4_Click()
+    Unload Me
+    data.Show
+End Sub
+
+Private Sub CommandButton6_Click()
+    Unload Me
+    tdata.Show
+End Sub
+
+Private Sub CommandButton7_Click()
+    Worksheets("傳票").Activate
+End Sub
