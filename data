@@ -1,0 +1,334 @@
+Dim tlb As Byte
+Dim tindex As Integer
+Private Sub cb_main_Click()
+    Unload Me
+    main.Show
+End Sub
+
+Private Sub cb_add_Click()
+    If checkdata() Then
+        If ob_debit.Value Then
+            ListBox1.AddItem (tb_itemno.Text)
+            ListBox1.List(ListBox1.ListCount - 1, 1) = tb_itemname.Text
+            ListBox1.List(ListBox1.ListCount - 1, 2) = tb_money.Text
+        Else
+            ListBox2.AddItem (tb_itemno.Text)
+            ListBox2.List(ListBox2.ListCount - 1, 1) = tb_itemname.Text
+            ListBox2.List(ListBox2.ListCount - 1, 2) = tb_money.Text
+        End If
+        tb_itemno.Text = ""
+        tb_itemname.Text = ""
+        tb_money.Text = ""
+        ob_debit.Value = False
+        ob_credit.Value = False
+    End If
+End Sub
+
+Private Sub cb_ok_Click()
+    Dim check As Double
+    check = 0
+    For i = 0 To ListBox1.ListCount - 1
+        check = check + Val(ListBox1.List(i, 2))
+    Next
+    For i = 0 To ListBox2.ListCount - 1
+        check = check - Val(ListBox2.List(i, 2))
+    Next
+    If check = 0 Then
+        Worksheets("傳票").Activate
+        rownum = Cells(Rows.count, 2).End(xlUp).Row
+        If Cells(rownum, 2).Value <> "" Then
+            rownum = rownum + 1
+        End If
+        Cells(rownum, 1).Value = tb_no.Text
+        Cells(rownum + 1, 1).Value = tusername & "：" & Format(Now, yymmdd)
+        Worksheets("項目").Activate
+        For i = 0 To ListBox1.ListCount - 1
+            trownum = Cells(Rows.count, 1).End(xlUp).Row
+            For j = 1 To trownum
+                If CStr(Cells(j, 3).Value) = ListBox1.List(i, 0) Then
+                    Worksheets("傳票").Cells(rownum, 2).Value = Cells(j, 4).Value
+                    Worksheets("傳票").Cells(rownum, 3).Value = ListBox1.List(i, 2)
+                    Worksheets("傳票").Cells(rownum, 4).Value = 1
+                    Worksheets("傳票").Cells(rownum, 5).Value = Cells(j, 5).Value
+                    rownum = rownum + 1
+                    Exit For
+                End If
+            Next
+        Next
+        For i = 0 To ListBox2.ListCount - 1
+            trownum = Cells(Rows.count, 1).End(xlUp).Row
+            For j = 1 To trownum
+                If CStr(Cells(j, 3).Value) = ListBox2.List(i, 0) Then
+                    Worksheets("傳票").Cells(rownum, 2).Value = Cells(j, 4).Value
+                    Worksheets("傳票").Cells(rownum, 3).Value = ListBox2.List(i, 2)
+                    Worksheets("傳票").Cells(rownum, 4).Value = 2
+                    Worksheets("傳票").Cells(rownum, 5).Value = Cells(j, 5).Value
+                    rownum = rownum + 1
+                    Exit For
+                End If
+            Next
+        Next
+        ListBox1.Clear
+        ListBox2.Clear
+        Worksheets("傳票").Activate
+        MsgBox ("傳票登陸成功")
+    Else
+        MsgBox ("借貸方不平衡，請檢查")
+    End If
+End Sub
+
+Private Sub cb_revise_Click()
+    Dim ta As String
+    Dim tb As String
+    Dim tc As String
+    If checkdata() Then
+        ta = tb_itemno.Text
+        tb = tb_itemname.Text
+        tc = tb_money.Text
+        If tlb = 1 Then
+            ListBox1.List(tindex, 0) = ta
+            ListBox1.List(tindex, 1) = tb
+            ListBox1.List(tindex, 2) = tc
+        Else
+            ListBox2.List(tindex, 0) = ta
+            ListBox2.List(tindex, 1) = tb
+            ListBox2.List(tindex, 2) = tc
+        End If
+        tb_itemno.Text = ""
+        tb_itemname.Text = ""
+        tb_money.Text = ""
+        MsgBox ("修改成功")
+    End If
+End Sub
+
+Private Sub cb_delete_Click()
+    If tlb = 1 Then
+        ListBox1.RemoveItem (tindex)
+    Else
+        ListBox2.RemoveItem (tindex)
+    End If
+End Sub
+
+Private Sub ListBox1_Click()
+    tlb = 1
+    For i = 0 To ListBox2.ListCount - 1
+        ListBox2.Selected(i) = False
+    Next
+    For i = 0 To ListBox1.ListCount - 1
+        If ListBox1.Selected(i) Then
+            tindex = i
+            tb_itemno.Text = ListBox1.List(i, 0)
+            tb_itemname.Text = ListBox1.List(i, 1)
+            tb_money.Text = ListBox1.List(i, 2)
+            ob_debit.Value = True
+            ob_credit.Value = False
+        End If
+    Next
+End Sub
+
+Private Sub ListBox2_Click()
+    tlb = 2
+    For i = 0 To ListBox1.ListCount - 1
+        ListBox1.Selected(i) = False
+    Next
+    For i = 0 To ListBox2.ListCount - 1
+        If ListBox2.Selected(i) Then
+            tindex = i
+            tb_itemno.Text = ListBox2.List(i, 0)
+            tb_itemname.Text = ListBox2.List(i, 1)
+            tb_money.Text = ListBox2.List(i, 2)
+            ob_debit.Value = False
+            ob_credit.Value = True
+        End If
+    Next
+End Sub
+
+Private Sub SpinButton1_Change()
+    Dim str() As String
+    str = Split(tb_date.Text, "/")
+    If SpinButton1.Value = SpinButton1.Max Then
+        If str(1) = 12 Then
+            str(0) = str(0) + 1
+            str(1) = 1
+            str(2) = 1
+            SpinButton1.Value = 1
+        Else
+            str(1) = str(1) + 1
+            str(2) = 1
+            SpinButton1.Value = 1
+        End If
+    ElseIf SpinButton1.Value = SpinButton1.Min Then
+        If str(1) = 1 Then
+            str(0) = str(0) - 1
+            str(1) = 12
+            str(2) = 31
+            SpinButton1.Value = 31
+        Else
+            str(1) = str(1) - 1
+            Call checkmonth(str(1))
+            str(2) = SpinButton1.Max - 1
+            SpinButton1.Value = SpinButton1.Max - 1
+        End If
+    Else
+        str(2) = SpinButton1.Value
+    End If
+    tb_date.Text = str(0) & "/" & str(1) & "/" & str(2)
+End Sub
+
+Private Sub tb_date_Change()
+    Dim key As Boolean
+    Dim tt() As String
+    key = False
+    tt = Split(tb_date.Text, "/")
+    If IsDate(tb_date.Text) Or tt(1) = "02" Or tt(1) = "2" Then
+        Dim t() As String
+        t = Split(tb_date, "/")
+        For i = 1 To 2
+            If Len(t(i)) = 1 Then t(i) = "0" & t(i)
+        Next
+        tb_date = t(0) & "/" & t(1) & "/" & t(2)
+        key = True
+    End If
+    If key Then
+        rownum = Cells(Rows.count, 1).End(xlUp).Row
+        Call find(rownum, t(0) & t(1) & t(2))
+        Call checkmonth(t(1))
+    End If
+End Sub
+
+Private Sub tb_itemname_Change()
+    Worksheets("項目").Activate
+    rownum = Cells(Rows.count, 1).End(xlUp).Row
+    For i = 1 To rownum
+        If CStr(Cells(i, 4).Value) = tb_itemname.Text Then
+            tb_itemno.Text = Cells(i, 3).Value
+            If Val(Cells(i, 5).Value) = 1 Then
+                ob_debit.Value = True
+                ob_credit.Value = False
+            Else
+                ob_debit.Value = False
+                ob_credit.Value = True
+            End If
+            Exit For
+        End If
+    Next
+End Sub
+
+Private Sub tb_itemno_Change()
+    Worksheets("項目").Activate
+    rownum = Cells(Rows.count, 1).End(xlUp).Row
+    For i = 1 To rownum
+        If CStr(Cells(i, 3).Value) = tb_itemno.Text Then
+            tb_itemname.Text = Cells(i, 4).Value
+            If Val(Cells(i, 5).Value) = 1 Then
+                ob_debit.Value = True
+                ob_credit.Value = False
+            Else
+                ob_debit.Value = False
+                ob_credit.Value = True
+            End If
+            Exit For
+        End If
+    Next
+End Sub
+
+Private Sub UserForm_Activate()
+    Worksheets("傳票").Activate
+    rownum = Cells(Rows.count, 1).End(xlUp).Row
+    If Cells(rownum, 1).Value <> "" Then rownum = rownum + 1
+    tyear = Year(Date) - 1911
+    tmonth = Month(Date)
+    tday = Day(Date)
+    If Len(tmonth) = 1 Then tmonth = "0" & tmonth
+    If Len(tday) = 1 Then tday = "0" & tday
+    tb_date.Text = tyear & "/" & tmonth & "/" & tday
+    If rownum = 1 Then
+        tb_no.Text = tyear & tmonth & tday & "0001"
+    Else
+        Call find(rownum, tyear & tmonth & tday)
+    End If
+    SpinButton1.Value = tday
+    Call checkmonth(tmonth)
+End Sub
+Sub find(ByVal a As Integer, ByVal str As String)
+    Dim tfind As Integer
+        tfind = -1
+        For i = 1 To a
+            If Mid(Cells(i, 1).Value, 1, 7) = str Then
+                tfind = i
+            End If
+        Next
+        If tfind <> -1 Then
+            tb_no.Text = Cells(tfind, 1).Value + 1
+        Else
+            tb_no.Text = str & "0001"
+        End If
+End Sub
+Sub checkmonth(ByVal tmonth As Byte)
+    Dim tt As Variant
+    Dim key As Boolean
+    tt = Array(4, 6, 9, 11)
+    key = False
+    If tmonth <> 2 Then
+        For i = 0 To UBound(tt)
+            If tmonth = tt(i) Then
+                key = True
+                Exit For
+            End If
+        Next
+        If key Then
+            SpinButton1.Max = 31
+        Else
+            SpinButton1.Max = 32
+        End If
+    Else
+        Dim t() As String
+        t = Split(tb_date.Text, "/")
+        t(0) = t(0) + 1911
+        If (t(0) Mod 4 = 0 And t(0) Mod 100 <> 0) Or (t(0) Mod 400 = 0 And t(0) Mod 3200 <> 0) Then
+            SpinButton1.Max = 30
+        Else
+            SpinButton1.Max = 29
+        End If
+    End If
+End Sub
+Function checkdata() As Boolean
+    Dim key As Boolean
+    Dim out As Boolean
+    out = False
+    key = True
+    Worksheets("項目").Activate
+    rownum = Cells(Rows.count, 1).End(xlUp).Row
+    If tb_itemno.Text = "" Or tb_itemname.Text = "" Or tb_money.Text = "" Then
+        MsgBox ("您的資料不完整")
+    Else
+        For i = 1 To rownum
+            If tb_itemno.Text = CStr(Cells(i, 3).Value) Then
+                key = False
+                If tb_itemname.Text = CStr(Cells(i, 4).Value) Then
+                    out = True
+                Else
+                    MsgBox ("您的項目和項目名稱連接不上，請確認")
+                End If
+                Exit For
+            End If
+        Next
+        If key Then
+            For i = 1 To rownum
+                If tb_itemname.Text = CStr(Cells(i, 4).Value) Then
+                    key = False
+                    If tb_itemno.Text = CStr(Cells(i, 3).Value) Then
+                        out = True
+                    Else
+                        MsgBox ("您的項目和項目名稱連接不上，請確認")
+                    End If
+                    Exit For
+                End If
+            Next
+        End If
+        If key Then
+            MsgBox ("您的項目和項目名稱連接不上，請確認")
+        End If
+    End If
+    checkdata = out
+End Function
