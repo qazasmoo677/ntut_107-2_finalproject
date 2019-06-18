@@ -1,0 +1,61 @@
+Private Sub UserForm_Activate()
+    cb_hide.Value = True
+    tb_password.PasswordChar = "*"
+End Sub
+
+Private Sub cb_hide_Click()
+    If cb_hide.Value Then
+        tb_password.PasswordChar = "*"
+    Else
+        tb_password.PasswordChar = ""
+    End If
+End Sub
+
+Private Sub cb_ok_Click()
+    If tb_id.Text = "" Then
+        MsgBox ("帳號不得為空！")
+    Else
+        If tb_password.Text = tb_password2.Text Then
+            Dim key As Boolean
+            Dim idrownum As Integer
+            Dim qarownum As Integer
+            Dim t As Integer
+            key = False
+            Worksheets("會員資料").Activate
+            idrownum = Cells(Rows.count - 1, 1).End(xlUp).Row
+            Worksheets("驗證問題").Activate
+            qarownum = Cells(Rows.count, 1).End(xlUp).Row
+            t = Int(Rnd() * qarownum + 1)
+            For i = 1 To idrownum
+                Worksheets("會員資料").Activate
+                If Cells(i, 1).Value = "" Then Exit For
+                If unsecret(Cells(i, 1).Value) = tb_id.Text Then key = True
+            Next
+            If key Then
+                tb_id.Text = ""
+                MsgBox ("此帳號已經存在！")
+            Else
+                Worksheets("驗證問題").Activate
+                If InputBox(Cells(t, 1), "驗證問題") = Cells(t, 2) Then
+                    Worksheets("會員資料").Activate
+                    If Cells(idrownum, 1).Value <> "" Then idrownum = idrownum + 1
+                    Cells(idrownum, 1).Value = secret(tb_id.Text)
+                    Cells(idrownum, 2).Value = secret(tb_password.Text)
+                    Cells(idrownum, 3).Value = tb_name.Text
+                    Cells(idrownum, 4).Value = tb_phone.Text
+                    Cells(idrownum, 5).Value = tb_mail.Text
+                    For i = 1 To 5
+                        Columns(i).EntireColumn.AutoFit
+                    Next
+                    Unload Me
+                    MsgBox ("註冊成功！")
+                    login.Show
+                Else
+                    MsgBox ("驗證失敗，請重試！")
+                End If
+            End If
+        Else
+            MsgBox ("兩次輸入的密碼不一致！")
+        End If
+    End If
+End Sub
