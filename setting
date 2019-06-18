@@ -1,0 +1,84 @@
+Private Sub CommandButton2_Click()
+    Unload Me
+    main.Show
+End Sub
+
+Private Sub Label11_Click()
+    If CheckBox1.Enabled = True Then
+        If CheckBox1.Value Then
+            CheckBox1.Value = False
+        Else
+            CheckBox1.Value = True
+        End If
+    End If
+End Sub
+
+Private Sub UserForm_Activate()
+    Worksheets("會員資料").Activate
+    TextBox9.Text = Cells(tuser, 3)
+    If Cells(tuser, 6).Value <> "" Then
+        Dim t As Integer
+        t = Cells(tuser, 6).Value
+        Worksheets("公司資料").Activate
+        TextBox1.Text = Cells(t, 1).Value
+        TextBox2.Text = Cells(t, 2).Value
+        TextBox3.Text = Cells(t, 3).Value
+        TextBox4.Text = Cells(t, 4).Value
+        TextBox5.Text = Cells(t, 5).Value
+        TextBox6.Text = Cells(t, 6).Value
+        TextBox8.Text = Cells(t, 7).Value
+        If Cells(t, 9).Value = "1" Then
+            CheckBox1.Value = True
+        Else
+            CheckBox1.Value = False
+        End If
+        TextBox1.Enabled = False
+        TextBox2.Enabled = False
+        TextBox3.Enabled = False
+        TextBox4.Enabled = False
+        TextBox5.Enabled = False
+        TextBox6.Enabled = False
+        TextBox8.Enabled = False
+        CheckBox1.Enabled = False
+        Label1.Enabled = False
+        CommandButton1.Enabled = False
+    End If
+End Sub
+Private Sub CommandButton1_Click()
+    Dim key As Boolean
+    key = True
+    If TextBox1.Text = "" Then key = False
+    If TextBox2.Text = "" Then key = False
+    If TextBox3.Text = "" Then key = False
+    If TextBox4.Text = "" Then key = False
+    If TextBox5.Text = "" Then key = False
+    If TextBox6.Text = "" Then key = False
+    If key Then
+        Worksheets("公司資料").Activate
+        rownum = Cells(Rows.count, 1).End(xlUp).Row
+        If Cells(rownum, 1).Value <> "" Then rownum = rownum + 1
+        Cells(rownum, 1).Value = TextBox1.Text
+        Cells(rownum, 2).Value = TextBox2.Text
+        Cells(rownum, 3).Value = TextBox3.Text
+        Cells(rownum, 4).Value = TextBox4.Text
+        Cells(rownum, 5).Value = TextBox5.Text
+        Cells(rownum, 6).Value = TextBox6.Text
+        Cells(rownum, 7).Value = TextBox8.Text
+        Cells(rownum, 8).Value = TextBox9.Text
+        If CheckBox1.Value Then
+            Cells(rownum, 9).Value = 1
+        Else
+            Cells(rownum, 9).Value = 0
+        End If
+        For i = 1 To 9
+             Columns(i).EntireColumn.AutoFit
+        Next
+        Worksheets("會員資料").Activate
+        Cells(tuser, 6).Value = rownum
+        Unload Me
+        MsgBox ("設定成功")
+        main.Show
+    Else
+        MsgBox ("尚有資料未填")
+    End If
+End Sub
