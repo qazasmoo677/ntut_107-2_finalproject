@@ -1,0 +1,32 @@
+Private Sub cb_search_Click()
+    Dim idrownum As Integer
+    Dim qarownum As Integer
+    Dim key As Integer
+    Dim t As Integer
+    key = -1
+    Worksheets("驗證問題").Activate
+    qarownum = Cells(Rows.count, 1).End(xlUp).Row
+    Worksheets("會員資料").Activate
+    idrownum = Cells(Rows.count, 1).End(xlUp).Row
+    t = Int(Rnd() * qarownum + 1)
+    For i = 1 To idrownum
+        If unsecret(Cells(i, 1)) = tb_id.Text Then key = i
+    Next
+    If key <> -1 Then
+        Worksheets("驗證問題").Activate
+        If InputBox(Cells(t, 1), "驗證問題") = Cells(t, 2) Then
+            Worksheets("會員資料").Activate
+            If tb_phone.Text = Cells(key, 4) And tb_mail.Text = Cells(key, 5) Then
+                Unload Me
+                MsgBox ("您的密碼為：" & unsecret(Cells(key, 2)) & "，請牢記！")
+                login.Show
+            Else
+                MsgBox ("資料錯誤，請重試！")
+            End If
+        Else
+            MsgBox ("驗證失敗，請重試！")
+        End If
+    Else
+        MsgBox ("查無此用戶!")
+    End If
+End Sub
