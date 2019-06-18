@@ -1,0 +1,144 @@
+Private Sub cb_back_Click()
+    Unload Me
+    main.Show
+End Sub
+
+Private Sub cb_find_Click()
+    Dim count As Integer
+    Dim str() As String
+    count = 1
+    Worksheets("傳票").Activate
+    str = Split(tb_date.Text, "/")
+    rownum = Cells(Rows.count, 1).End(xlUp).Row
+    trownum = Cells(Rows.count, 2).End(xlUp).Row
+    ListBox1.Clear
+    For i = 2 To rownum
+        If Mid(Cells(i, 1).Value, 1, 7) = str(0) & str(1) & str(2) Then
+            Dim key As Boolean
+            Dim t As Integer
+            key = False
+            t = 1
+            Do Until key
+                If Cells(i + t + 1, 1).Value = "" And i + t < trownum Then
+                    t = t + 1
+                Else
+                    key = True
+                End If
+            Loop
+            If Mid(Cells(i + 1, 1).Value, 1, 3) = tusername Then
+                ListBox1.AddItem (count)
+                ListBox1.List(ListBox1.ListCount - 1, 1) = Cells(i, 2).Value
+                ListBox1.List(ListBox1.ListCount - 1, 2) = Cells(i, 3).Value
+                For j = i + 1 To i + t
+                    ListBox1.AddItem ("")
+                    If Cells(j, 4).Value = 1 Then
+                        ListBox1.List(ListBox1.ListCount - 1, 1) = Cells(j, 2).Value
+                        ListBox1.List(ListBox1.ListCount - 1, 2) = Cells(j, 3).Value
+                    Else
+                        ListBox1.List(ListBox1.ListCount - 1, 3) = Cells(j, 2).Value
+                        ListBox1.List(ListBox1.ListCount - 1, 4) = Cells(j, 3).Value
+                    End If
+                Next
+            End If
+            ListBox1.AddItem ("─────")
+            ListBox1.List(ListBox1.ListCount - 1, 1) = "───────────────"
+            ListBox1.List(ListBox1.ListCount - 1, 2) = "──────────"
+            ListBox1.List(ListBox1.ListCount - 1, 3) = "───────────────"
+            ListBox1.List(ListBox1.ListCount - 1, 4) = "──────────"
+            i = i + t
+            count = count + 1
+        End If
+    Next
+End Sub
+
+Private Sub SpinButton1_Change()
+    Dim str() As String
+    str = Split(tb_date.Text, "/")
+    If SpinButton1.Value = SpinButton1.Max Then
+        If str(1) = 12 Then
+            str(0) = str(0) + 1
+            str(1) = 1
+            str(2) = 1
+            SpinButton1.Value = 1
+        Else
+            str(1) = str(1) + 1
+            str(2) = 1
+            SpinButton1.Value = 1
+        End If
+    ElseIf SpinButton1.Value = SpinButton1.Min Then
+        If str(1) = 1 Then
+            str(0) = str(0) - 1
+            str(1) = 12
+            str(2) = 31
+            SpinButton1.Value = 31
+        Else
+            str(1) = str(1) - 1
+            Call checkmonth(str(1))
+            str(2) = SpinButton1.Max - 1
+            SpinButton1.Value = SpinButton1.Max - 1
+        End If
+    Else
+        str(2) = SpinButton1.Value
+    End If
+    tb_date.Text = str(0) & "/" & str(1) & "/" & str(2)
+End Sub
+
+Sub checkmonth(ByVal tmonth As Byte)
+    Dim tt As Variant
+    Dim key As Boolean
+    tt = Array(4, 6, 9, 11)
+    key = False
+    If tmonth <> 2 Then
+        For i = 0 To UBound(tt)
+            If tmonth = tt(i) Then
+                key = True
+                Exit For
+            End If
+        Next
+        If key Then
+            SpinButton1.Max = 31
+        Else
+            SpinButton1.Max = 32
+        End If
+    Else
+        Dim t() As String
+        t = Split(tb_date.Text, "/")
+        t(0) = t(0) + 1911
+        If (t(0) Mod 4 = 0 And t(0) Mod 100 <> 0) Or (t(0) Mod 400 = 0 And t(0) Mod 3200 <> 0) Then
+            SpinButton1.Max = 30
+        Else
+            SpinButton1.Max = 29
+        End If
+    End If
+End Sub
+
+Private Sub tb_date_Change()
+    Dim key As Boolean
+    Dim tt() As String
+    key = False
+    tt = Split(tb_date.Text, "/")
+    If IsDate(tb_date.Text) Or tt(1) = "02" Or tt(1) = "2" Then
+        Dim t() As String
+        t = Split(tb_date, "/")
+        For i = 1 To 2
+            If Len(t(i)) = 1 Then t(i) = "0" & t(i)
+        Next
+        tb_date = t(0) & "/" & t(1) & "/" & t(2)
+        key = True
+    End If
+    If key Then
+        rownum = Cells(Rows.count, 1).End(xlUp).Row
+        Call checkmonth(t(1))
+    End If
+End Sub
+
+Private Sub UserForm_Activate()
+    tyear = Year(Date) - 1911
+    tmonth = Month(Date)
+    tday = Day(Date)
+    If Len(tmonth) = 1 Then tmonth = "0" & tmonth
+    If Len(tday) = 1 Then tday = "0" & tday
+    tb_date.Text = tyear & "/" & tmonth & "/" & tday
+    SpinButton1.Value = tday
+    Call checkmonth(tmonth)
+End Sub
